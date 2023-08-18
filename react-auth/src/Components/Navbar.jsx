@@ -12,15 +12,87 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { usestateContext } from '../Context/Context';
 import AxiosClients from '../Utils/AxiosClients';
-import { Navigate } from 'react-router-dom';
-
+import { Link, Navigate } from 'react-router-dom';
+import Dropdown from 'react-bootstrap/Dropdown';
+import Echo from 'laravel-echo'
+import Badge from 'react-bootstrap/Badge';
+import Button from 'react-bootstrap/Button';
+import moment from 'moment';
 
 const Navbar=()=>{
     const [active,setActive]=useState(false);
-	const {currentUser,token,setcurrentUser,Settoken}=usestateContext();
+	const {currentUser,token,setcurrentUser,Settoken,counter,setCounter,previousCounter,setPreviousCounter}=usestateContext();
+	const [notifications,setnotifications]=useState();
 	const handleClick = event => {
 		setActive(current => !current);
 	  };
+	//   function subtractHours(utc, hours) {
+	// 	utc.setHours(moment(utc).fromNow() - hours);
+	// 	console.log(utc);
+	// 	return date;
+	//   }
+	  function time(utc){
+		const oneHourBefore = moment(utc).subtract(-1, 'hour').fromNow();
+		return oneHourBefore;
+	}
+	// {setInterval(time, 60000)}
+	
+	  useEffect(() => {
+      window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: 'b3c6c9ccda6f354e3dc2',
+        cluster: 'mt1',
+        encrypted: true,
+        auth: {
+          headers: {
+              Authorization: `Bearer ${localStorage.getItem('ACCESS_TOKEN')}`,
+          },
+      },
+        authorizer: (channel, options) => {
+       
+          return {
+              authorize: (socketId, callback) => {
+                AxiosClients.post('http://127.0.0.1:8000/api/broadcasting/auth', {
+                       socket_id: socketId,
+                       channel_name: channel.name
+                  })
+                  .then(response => {
+                      callback(null, response.data);
+                      // console.log(response);
+                  })
+                  .catch(error => {
+                      callback(error);
+                      
+                  });
+              }
+          };
+      },
+      
+    });
+    if(currentUser.id!=undefined){
+      window.Echo.private('send-email-job.'+currentUser.id)
+      .listen('EmailRecrutor', (event) => {
+        //  setNotifications(event.notifications);
+        //  console.log(notifications);
+        incrementCounter();
+      });
+    }
+
+}, [counter])
+
+// if(notifications != undefined){
+// 	// let notificationData = JSON.parse(notifications, true);
+// 	// console.log(JSON.parse(notifications[0].data));
+// 	{notifications.map((tag, index) => (
+		
+// 	console.log(JSON.parse(tag.data).data)
+// )) } 
+
+	  
+// }
+
+
+
 
 	  useEffect(() => {
 		AxiosClients.get('/user')
@@ -30,6 +102,30 @@ const Navbar=()=>{
 		  .catch((error) => console.error(error));
 	  }, [])
 
+	  useEffect(()=>{
+		AxiosClients.get('notifications').then(({data})=>{
+		 setCounter(data.length);
+		 setnotifications(data);
+		
+		})
+	   },[counter]);
+
+	   const incrementCounter = () => {
+        setPreviousCounter(counter);
+        setCounter(prevCounter => prevCounter + 1);
+      };
+
+	//   useEffect(() => {
+	// 	AxiosClients.get('/notifications')
+	// 	  .then(({data}) => {
+	// 		// setcurrentUser(data)
+	// 		setnotifications(data.length);
+	// 		// console.log(data.length);
+
+	// 	  })
+	// 	  .catch((error) => console.error(error));
+	//   }, [])
+
 	  const logout=()=>{
 		AxiosClients.post('/logout')
 		
@@ -38,7 +134,7 @@ const Navbar=()=>{
 		//   <Navigate to="/home"/>
 		// })
 	  }
-		   
+	 
     return (
             <>
             
@@ -57,14 +153,21 @@ const Navbar=()=>{
 						</form>
 					</div>
 					<nav>
-						<ul>
-							<li>
-								<a href="index.html" title="">
-									<span><img src="images/icon1.png" alt=""/></span>
-									Home
-								</a>
+						<ul className='nav-menu-list'>
+						<li>
+								{/* <a href="projects.html" title=""> */}
+								<Link to='/news_feed'>
+								
+								<span>
+									<img src="images/icon3.png" alt=""/> 
+								</span>
+								Home
+								</Link>
+									
+									
+								{/* </a> */}
 							</li>
-							<li>
+							{/* <li>
 								<a href="companies.html" title="">
 									<span><img src="images/icon2.png" alt=""/></span>
 									Companies
@@ -73,12 +176,15 @@ const Navbar=()=>{
 									<li><a href="companies.html" title="">Companies</a></li>
 									<li><a href="company-profile.html" title="">Company Profile</a></li>
 								</ul>
-							</li>
+							</li> */}
 							<li>
-								<a href="projects.html" title="">
-									<span><img src="images/icon3.png" alt=""/></span>
+								{/* <a href="projects.html" title=""> */}
+								<Link to='projects'>
+								<span><img src="images/icon3.png" alt=""/></span>
 									Projects
-								</a>
+								</Link>
+									
+								{/* </a> */}
 							</li>
 							<li>
 								<a href="profiles.html" title="">
@@ -91,16 +197,21 @@ const Navbar=()=>{
 								</ul>
 							</li>
 							<li>
-								<a href="jobs.html" title="">
+								{/* <a href="" title=""> */}
+								<Link to='jobs'>
 									<span><img src="images/icon5.png" alt=""/></span>
 									Jobs
-								</a>
+								</Link>
+								{/* </a> */}
 							</li>
 							<li>
-								<a href="#" title="" className="not-box-open">
-									<span><img src="images/icon6.png" alt=""/></span>
-									Messages
-								</a>
+								{/* <a href="#" title="" className="not-box-open"> */}
+								<Link to='inbox'>
+								<span><img src="images/icon6.png" alt=""/></span>
+									Inbox
+								</Link>
+									
+								{/* </a> */}
 								<div className="notification-box msg">
 									<div className="nt-title">
 										<h4>Setting</h4>
@@ -144,10 +255,52 @@ const Navbar=()=>{
 								</div>
 							</li>
 							<li>
-								<a href="#" title="" className="not-box-open">
+								{/* <a href="#" title="" className="not-box-open">
 									<span><img src="images/icon7.png" alt=""/></span>
 									Notification
+								</a> */}
+								<Dropdown className='dropdown-notif'>
+								<Dropdown.Toggle variant="success" id="dropdown-basic">
+									
+								{/* <Button variant="primary"> */}
+								<a href="#" title="" className="not-box-open ">
+								<span><img src="images/icon7.png" alt=""/></span>
+
+								Notification
+								 <Badge bg="secondary" className='badge-notif'>
+									{/* <div> */}
+																		{/* <span><img src="images/icon7.png" alt=""/></span> */}
+
+									<span className='badge-sub-item'>{counter}</span>
+									
+									
+									{/* </div> */}
+									
+								</Badge>
+								<span className="visually-hidden">unread messages</span>
 								</a>
+								{/* </Button> */}
+
+								</Dropdown.Toggle>
+
+								<Dropdown.Menu>
+									{/* <Dropdown.Item href="#/action-1">Action</Dropdown.Item>
+									<Dropdown.Item href="#/action-2">Another action</Dropdown.Item>
+									<Dropdown.Item href="#/action-3">Something else</Dropdown.Item> */}
+									
+									{(notifications && notifications!=undefined)&& notifications.map((notification, index) => (  
+										<Dropdown.Item href="#/action-1">Vous avez recu en email de {JSON.parse(notification.data).data[1]}... 
+										<span><img src="images/clock.png" alt=""/>
+																     	{time(notification.created_at)}
+										</span>
+										</Dropdown.Item>
+										
+									)) } 
+									 
+
+								</Dropdown.Menu>
+								</Dropdown>
+								
 								<div className="notification-box">
 									<div className="nt-title">
 										<h4>Setting</h4>
@@ -211,7 +364,7 @@ const Navbar=()=>{
 							<a href="#" title="">{currentUser.name}</a>
 							}
 							
-							<i class="fa fa-arrow-down"></i>
+							<i className="fa fa-arrow-down"></i>
 						</div>
 						
 						<div className={active==true ? "user-account-settingss active" :"user-account-settingss"}>

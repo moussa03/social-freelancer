@@ -25,8 +25,11 @@ class RegisterRequest extends FormRequest
             'Name' => 'required',
             'Email'=>'required|unique:users',
             'password' => 'required|confirmed',
+            'password_confirmation'=>"required",
             'profil' => 'required',
-            'ville_id'=>'required'
+            'ville_id'=>'required',
+            'profil_picture'=>"required"
+
         ];
     }
 }

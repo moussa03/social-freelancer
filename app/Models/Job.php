@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,12 +9,13 @@ class Job extends Model
     use HasFactory;
         
     protected $fillable = [
-        'post_title',
+        'job_title',
         'user_id',
-        'post_type',
+        'job_type',
         'salary',
         'category',
-        'job_description'
+        'job_description',
+        'job_picture'
     ];
     
         /**
@@ -27,21 +27,25 @@ class Job extends Model
 
             return $this->belongsToMany(Tags::class,'job_tag','job_id','tag_id')->withTimestamps();;
         }
-        
+        public function comments(){
+
+             return $this->belongsToMany(Comment::class,'job_comment','job_id','comment_id')->withTimestamps();;
+            
+        }
          
         public function users()
         {
             return $this->belongsTo(User::class,"user_id");
         }
         
-        public function ville()
+        public function cities()
         {
             return $this->hasOneThrough(
-                ville::class,
+                Ville::class,
                 User::class,
                 'ville_id', // foreign key on the users table
-                'id', // local key on the cities table
                 'user_id', // local key on the posts table
+                'id', // local key on the cities table
                 'id' // foreign key on the users table
             );
         }

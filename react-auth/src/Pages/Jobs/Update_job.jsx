@@ -7,55 +7,64 @@ import Swal from 'sweetalert2'
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
-
 import { useRef } from "react";
 const Update_job=()=>{
+
 	const {job_id}=useParams();
 	const [job,setjob]=useState();
+	const [errors,SetErors]=useState();
+
     const post_title=createRef();
 	const post_type=createRef();
 	const category=createRef();
 	const price=createRef();
 	const job_description=createRef();
 	const navigate = useNavigate();
-	const goBack = (e) => {
-        e.preventDefault();
-        navigate(-1);
-    }
+
 	useEffect(() => {
 	AxiosClients.get(`jobs/${job_id}`)
 	.then(response => {
 		const job = response.data
+		console.log(job);
 		setjob(job);
 	})
 	.catch(error => {
 		console.log(error);
 	});
   }, []); 
-	
+	 const cancel=(e)=>{
+		e.preventDefault();
+		navigate("/news_feed");
+
+	 }
 	const update=(e)=>{
 		e.preventDefault();
 		const payload={
-			post_title:post_title.current.value,
+			Post_Title:post_title.current.value,
 			category:category.current.value,
-			price:price.current.value,
-			job_description:job_description.current.value,
-			post_type:post_type.current.value
+			Price:price.current.value,
+			Description:job_description.current.value,
+			Post_type:post_type.current.value
 		}
 		
 		AxiosClients.put(`/jobs/${job_id}`,payload).then(({data})=>{
-                 		
-		})
-		Swal.fire({
-			title: 'updated!',
-			// text: 'Do you want to continue',
-			icon: 'success',
-			confirmButtonText: 'Cool'
-		  })
-		.catch((err) => {
+			Swal.fire({
+				title: 'Job Updated Successfully',
+				// text: 'Do you want to continue',
+				icon: 'success',
+				confirmButtonText: 'OK'
+			  })  
+			  SetErors('');
+			  navigate("/news_feed");
+			  
 
-			const response = err.response;
-		   
+
+		})
+		
+		.catch((error) => {
+
+			const res=error.response.data;
+			SetErors(res.errors);		   
 		 });
 		  
 
@@ -65,7 +74,6 @@ return (
 <>
     
 <div class="wrapper">
-		
 		<section class="forum-sec">
 			<div class="container">
 				{/* <div class="forum-links">
@@ -96,31 +104,34 @@ return (
 									</div>
 									<div class="usr_quest">
 										<h3>{job && job[0].post_title}</h3>
+                                          
 										<span><i class="fa fa-clock-o"></i>3 min ago</span>
 										<ul class="react-links">
 											<li><a href="#" title=""><i class="fa fa-heart"></i> Vote 150</a></li>
 											<li><a href="#" title=""><i class="fa fa-share-alt"></i> Share</a></li>
 										</ul>
-										<ul class="quest-tags">
-											{/* <li><a href="#" title="">Work</a></li>
-											<li><a href="#" title="">Php</a></li>
-											<li><a href="#" title="">Design</a></li> */}
-
+										{/* <ul class="quest-tags">
+										
 										{job &&  Object.keys(job[1]).map(key => (
 										<li key={key}> <a href="#">{job[1][key].tag_name}</a> </li> 
 										))}
-										</ul>
+										</ul> */}
 										<p> {job && job[0].job_description} </p>
 										<div class="post_comment_sec">
 					<form onSubmit={update}>
 						<div class="row">
 							<div class="col-lg-12">
-								<input ref={post_title} type="text" name="title" placeholder="Title" defaultValue={job && job[0].post_title}/>
+								<input ref={post_title} className={`${errors && errors.Post_Title ? "input_eror" : ""}`} type="text" name="title" placeholder="Title" defaultValue={job && job[0].post_title}/>
 							</div>
+							{errors && 
+									<div className='error-message'>
+										{errors.Post_Title}
+									</div>
+							}
 							<div class="col-lg-12">
 								<div class="inp-field">
-									<select ref={category} >
-									<option value=""  disabled hidden >Select a categorie</option>
+									<select ref={category} className={` ${ errors && errors.category ? "input_eror" : "input_succes"}`} >
+									<option value=""  disabled selected >Select a categorie</option>
 									<option key="1">Content Creation</option>
 										<option key="2">Customer Service</option>
 										<option key="3">Data Entry</option>
@@ -134,25 +145,39 @@ return (
 									</select>
 								</div>
 							</div>
+							{errors && 
+									<div className='error-message'>
+										{errors.category}
+									</div>
+									}
 							
 							<div class="col-lg-12">
 								<div class="price-sec">
 									<div class="price-br">
-										<input ref={price} type="text" name="price1" placeholder="Price" defaultValue={job && job[0].salary}/>
+										<input ref={price} type="text" className={` ${ errors && errors.Price ? "input_eror" : ""}`} name="price1" placeholder="Price" defaultValue={job && job[0].salary}/>
 										<i class="la la-dollar"></i>
 									</div>
+									{errors && 
+									<div className='error-message'>
+										{errors.Price}
+									</div>
+									}
 									
 								</div>
 							</div>
 							<div class="col-lg-12">
 								<div class="inp-field">
-									<select ref={post_type}>
-									<option value=""  disabled hidden>Employment Contract</option>
-									   <option key="1">Full time</option>
-									   <option key="2">Half time</option>
-										
+									<select ref={post_type} className={` ${errors && errors.Post_type ? "input_eror" : ""}`}>
+									<option value=""  disabled selected >Employment Contract</option>
+									<option key="1">Full time</option>
+									<option key="2">Half time</option>
 									</select>
 								</div>
+								{errors && 
+									<div className='error-message'>
+										{errors.Post_type}
+									</div>
+									}
 							</div>
 							<div class="col-lg-12">
 								<textarea ref={job_description} name="description" placeholder="Description" defaultValue={job && job[0].job_description}></textarea>
@@ -160,7 +185,7 @@ return (
 							<div class="col-lg-12">
 								<ul className="update">
 									<li><button class="active" type="submit" value="post" onClick={update}>Save and Exit</button></li>
-									<li><button class="back" type="submit" value="post"><Link to={`/news_feed/`}> Cancel  </Link></button></li>
+									<li><button class="back" type="submit" value="post" onClick={cancel}> Cancel  </button></li>
 									
 								</ul>
 							</div>

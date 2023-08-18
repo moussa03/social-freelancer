@@ -3,6 +3,11 @@
 namespace App\Providers;
 
 use Illuminate\Auth\Events\Registered;
+
+
+use App\Events\EmailRecrutor;
+use App\Listeners\SendEmailRecrutor;
+
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
@@ -18,6 +23,12 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        // messageEvent::class => [
+        //    sendNotificationListener::class,
+        // ],
+        // 'App\Events\messageEvent' => [
+        //     'App\Listeners\SendNotificationListener',
+        // ],
     ];
 
     /**
@@ -25,7 +36,11 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+
+        Event::listen(
+            EmailRecrutor::class,
+            [SendEmailRecrutor::class, 'handle']
+        );
     }
 
     /**

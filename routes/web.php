@@ -18,5 +18,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// route::get("event",function(){
+//     \App\Events\EmailRecrutor::dispatch(App\Models\User::find(2));
+// });
+// Route::post('/broadcasting/auth', function () {
+//     return Auth::check() ? Auth::user() : abort(401);
+// })->middleware('auth:web');
+
 // Route::get('/jobs',[JobController::class,'index']);
 

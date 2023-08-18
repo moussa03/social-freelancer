@@ -5,7 +5,6 @@ import { usestateContext } from "../Context/Context"
 const GuestLayout=()=>{
     
     const {token}=usestateContext();
-
     if(token){
        return <Navigate to="/news_feed"/>
     }

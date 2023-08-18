@@ -23,10 +23,10 @@ class JobRequest extends FormRequest
     {
         return [
             
-            'Post_Title'=>"required|min:5",
-            'category'=>"required",
+            'job_title'=>"required|min:5",
+            'job_category'=>"required",
             'Price'=>"required",
-            'Post_type'=>"required",
+            'job_contract'=>"required",
             "Description"=>"required"
             
 

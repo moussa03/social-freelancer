@@ -6,10 +6,13 @@ import '../assets/css/custom.css';
 import Form from 'react-bootstrap/Form';
 import Alert from 'react-bootstrap/Alert';
 import Badge from 'react-bootstrap/Badge';
-import { createRef, useState } from 'react';
+import { createRef, useEffect, useState } from 'react';
 import { usestateContext } from "../Context/Context";
 import { useParams } from 'react-router-dom';
 import AxiosClients from '../Utils/AxiosClients';
+import axios from 'axios';
+
+
 import { useRef } from 'react';
 
 
@@ -28,7 +31,66 @@ function Update_user() {
 	const confirmed_pass=createRef();
 	const [passwordmatch,setmatch]=useState();
 	const [not_match,setnotmatch]=useState();
+	const [data, setData] = useState([] );
+	const username=createRef();
+	const profil=createRef();
+	const ville=createRef();
+	const email=createRef();
+	const profil_picture=createRef();
 	let id = useParams();
+
+
+    useEffect(() => {
+		const fetchData = async () => {
+		  const result = await axios(
+			'http://127.0.0.1:8000/api/cities',
+		  );
+	    //  console.log(result.data.cities);
+		  setData(result.data);
+		};
+		
+		fetchData();
+	  }, []);
+
+	
+	  const [image, setImage] = useState(null);
+	  function handleFileChange(event) {
+		setImage(event.target.files[0]);
+	  }
+	  const formdata=new FormData();
+	  const Update_User = async (ev) => {
+      ev.preventDefault()
+         formdata.append('Username',username.current.value);
+         formdata.append('profil',profil.current.value);
+         formdata.append('ville',ville.current.value); 
+		 formdata.append('email',email.current.value); 
+         formdata.append("picture", image);
+        const response = await AxiosClients.post(`update_user/${id.user_id}`,formdata,
+        {
+            headers: {"Content-Type": "multipart/form-data"},
+            
+        }).then((res) => {
+
+            //  alert("File Uploaded Successfully");
+           
+            }).catch((error) => {
+
+             
+             
+        });
+    } 
+	// catch (error) {
+    //     console.log(error)
+    // }
+
+    
+    
+   
+
+
+		
+	  
+	  
 	const [user, setUser] = useState({
 		id: null,
 		name: '',
@@ -36,7 +98,6 @@ function Update_user() {
 		password: '',
 		password_confirmation: ''
 	  })
-	  console.log({user});
 	function clearvalue(e){
 		e.preventDefault();
 		oldpass.current.value="";
@@ -115,6 +176,12 @@ function Update_user() {
 				<i class="fa fa-gears"></i>
 				Account Setting n {user_id}
 
+			  </Nav.Link>
+            </Nav.Item>
+			<Nav.Item>
+              <Nav.Link eventKey="profil_detail">
+			  <i class="fa fa-lock"></i>
+				Profil Details
 			  </Nav.Link>
             </Nav.Item>
             <Nav.Item>
@@ -208,8 +275,9 @@ function Update_user() {
 										</form>
 										</div>
 										
-										</Tab.Pane>
-										<Tab.Pane eventKey="status">
+			</Tab.Pane>
+			
+			<Tab.Pane eventKey="status">
               {/* <Sonnet /> */}
 									   <div class="acc-setting">
 										<h3>Account Setting</h3>
@@ -254,8 +322,7 @@ function Update_user() {
 											<div class="cp-field">
 												<h5>Old Password</h5>
 												<div class="cpp-fiel">
-													{/* <input ref={oldpass} type="text" name="old-password" placeholder="Old Password" value={currentUser.password}/> */}
-													<input value={user.name} onChange={ev => setUser({...user, name: ev.target.value})} placeholder="Name"/>
+													<input  placeholder="Name"/>
 
 													<i class="fa fa-lock"></i>
 												</div>
@@ -536,8 +603,75 @@ function Update_user() {
 										</form>
 									</div>
             </Tab.Pane>
+			<Tab.Pane eventKey="profil_detail">
+              {/* <Sonnet /> */}
+									   <div class="acc-setting">
+										<h3>Account Setting</h3>
+										<form onSubmit={Update_User} enctype="multipart/form-data">
+											<div class="cp-field">
+												<h5>Username</h5>
+												<div class="cpp-fiel">
+													{/* <input ref={oldpass} type="text" name="old-password" placeholder="Old Password" value={currentUser.password}/> */}
+													<input ref={username} name="username" defaultValue={currentUser.name}  placeholder="Name"/>
+													<i class="fa fa-user"></i>
+												</div>
+											</div>
+											<div class="cp-field">
+												<h5>Email</h5>
+												<div class="cpp-fiel">
+													<input ref={email} defaultValue={currentUser.email}  type="text" name="new-password" readOnly/>
+													<i class="fa fa-envelope"></i>
+
+												</div>
+											</div>
+											<div class="cp-field">
+											<h5>Profil</h5>
+											<Form.Select ref={profil}>
+												<option value=""  disabled selected> Profil </option>
+												<option> Client</option>
+												<option> Freelancer </option>
+											</Form.Select>
+											
+											</div>
+											<div class="cp-field">
+											<h5>City</h5>
+											<Form.Select ref={ville}>
+											<option value=""  disabled selected> Select a City </option>
+											{data.map(item => (
+														<option value={item.id}  >
+															<li key={item.id}>
+															<a >{item.City_Name}</a>
+														     </li>
+														</option>
+														
+														))}
+											</Form.Select>
+											
+											</div>
+											
+											<div class="cp-field">
+											<h5>Profil Picture</h5>
+											<Form.Group controlId="formFile" className="mb-3" >
+											<Form.Control type="file" onChange={handleFileChange}/>
+								     		</Form.Group>
+
+											</div>
+											<div class="cp-field">
+												<h5><a href="#" title="">Forgot Password?</a></h5>
+											</div>
+											<div class="save-stngs pd2">
+												<ul>
+													<li><button type="submit" > Save Setting</button></li>
+													{/* <li><button type="submit" onClick={cancel}>Restore Setting</button></li> */}
+												</ul>
+											</div>
+											{/* <!--save-stngs end--> */}
+										</form>
+									</div>
+            </Tab.Pane>
           </Tab.Content>
         </Col>
+		
       </Row>
     </Tab.Container>
 	</div>

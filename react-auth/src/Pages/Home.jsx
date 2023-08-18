@@ -1,10 +1,6 @@
 import { createRef, useEffect, useState } from "react";
-import axios from "axios";
 import AxiosClients from "../Utils/AxiosClients";
-import { Outlet } from "react-router-dom";
-import style from '../assets/css/style.css'
-import instance from "../Utils/AxiosClients";
-import { useRef } from "react";
+import Swal from 'sweetalert2'
 import Login from "../Components/Login"
 import Signup from "../Components/Signup";
 import  "../assets/css/animate.css";
@@ -19,17 +15,14 @@ import "../assets/css/responsive.css";
 import { usestateContext } from "../Context/Context";
 
 
-
-
-// 
-
 const  Home=()=> {
-  
   const [currentForm, setCurrentForm] = useState(true);
   // const [toggle, setToggle] = React.useState(true)
   const [loginpage,setlogin]=useState(true);
   const [signuppage,setsignup]=useState(false)
- 
+	const [loading, setLoading] = useState(false);
+  const [signUploading,setLoadingsignUp]=useState(false);
+
   const changelogin=()=>{
     if(loginpage===false){
       setlogin(true);
@@ -54,45 +47,62 @@ const changesignup=()=>{
     const PassRef=createRef();
     const ville_ref=createRef();
     const profil=createRef();
-    const profil_image=createRef();
+    const profil_picture=createRef();
     const {token,Settoken,_SetToken,currentUser,setcurrentUser}=usestateContext();
     const [Erors, Seterrors]=useState(null);
-    const [message, setMessage] = useState(null)
+ 
 
-    //  const changefront=()=>{
-    //     const container=document.getElementById('container');
-    //     container.classList.toggle('right-panel-active');
-    //  }
-    
-   
-     
-    const signup = ev => {
-     
+    const [message, setMessage] = useState(null)
+  
+    const [image, setImage] = useState(null);
+    function handleFileChange(event) {
+      setImage(event.target.files[0]);
+    }
+      const formdata=new FormData();
+      const signup = async (ev) => {
+        setLoadingsignUp(true)
       ev.preventDefault()
-      const payload = {
-        Name: nameRef.current.value,
-        Email: emailRef.current.value,
-        password: passwordRef.current.value,
-        password_confirmation: password_confirmation.current.value,
-        ville_id:ville_ref.current.value,
-        profil:profil.current.value,
-        // profil_image:profil_image.current.value
-      }
-      AxiosClients.post('/signup', [payload,picture])
-      .then(({data}) => {
-        
-        setcurrentUser(data.user);
-        Settoken(data.token);
-      })
+      formdata.append('Name',nameRef.current.value);
+      formdata.append('Email',emailRef.current.value);
+      formdata.append('password',passwordRef.current.value);
+      formdata.append('password_confirmation',password_confirmation.current.value);
+      formdata.append('profil',profil.current.value);
+      formdata.append('ville_id',ville_ref.current.value); 
+      formdata.append("profil_picture", image);
+      try {
+        if(image===null ||image===undefined || image==="" ){
+          Swal.fire({
+            title: 'must upload image!',
+            // text: 'Do you want to continue',
+            icon: 'error',
+            confirmButtonText: 'Ok'
+            })
+       }
+        // We will send formData object as a data to the API URL here.
+        const response = await AxiosClients.post("signup",formdata,
+        {
+            headers: {"Content-Type": "multipart/form-data"},
+            
+        }).then((res) => {
+          setLoadingsignUp(false)
+
+            // alert("File Uploaded Successfully");
+            setcurrentUser(res.data.user);
+            Settoken(res.data.token); 
+            }).catch((error) => {
+             const res=error.response.data;
+             Seterrors(res.errors);
+             setLoadingsignUp(false)
+
+             
+             
+        });
+    } catch (error) {
+        console.log(error)
+    }
+
       
-      .catch((err) => {
-         const response = err.response;
-        if (response && response.status === 422) {
-            Seterrors(response.data.errors);
-        }
-        // console.log(Erors.Name);
-       
-      })
+     
     
     }
    
@@ -103,18 +113,19 @@ const changesignup=()=>{
         email:Emailref.current.value,
         password:PassRef.current.value
      }
-
+     setLoading(true)
      AxiosClients.post('/login', payload)
      .then(({data}) => {
-    //    setcurrentUser(data.user);
-        //   console.log(data.token);
+      setLoading(false)
+         setcurrentUser(data.user);
           Settoken(data.token);        
      })
      
      .catch((err) => {
         const response = err.response;
        if (response && response.status === 422) {
-        console.log(response);
+        setLoading(false)
+        Seterrors(response.data.errors);
         setMessage(response.data.message);
        }
        // console.log(Erors.Name);
@@ -145,11 +156,11 @@ const changesignup=()=>{
 						<div class="col-lg-6">
 							<div class="login-sec">
 								<ul class="sign-control" id="sign-control">
-									<li id="tab-1" className={`banner ${loginpage ==true? "current" : ""}`} ><a href="#" title="" onClick={() => changelogin()}>Sign in</a></li>				
+									<li id="tab-1" className={`banner ${loginpage ==true? "current" : ""}`} ><a href="#" title="" onClick={() => changelogin()}>Sign in </a></li>				
 									<li id="tab-2" className={`banner ${signuppage===true ? "current" : ""}`} ><a href="#" title="" onClick={() => changesignup()}>Sign up</a></li>				
 								</ul>			
                 
-                {loginpage === true ? <Login  email={Emailref} pass={PassRef} login={login}/> : <Signup  name={nameRef} email={emailRef} password={passwordRef} password_confirmation={password_confirmation} ville_id={ville_ref} profil={profil} picture={picture} signup={signup}/>}
+                {loginpage === true ? <Login  email={Emailref} pass={PassRef} login={login} loading={loading} Erors={Erors} Seterrors={Seterrors} message={message}/> : <Signup  name={nameRef} email={emailRef} password={passwordRef} password_confirmation={password_confirmation} ville_id={ville_ref} profil={profil} handleFileChange={handleFileChange} signup={signup} Erors={Erors} Seterrors={Seterrors} signUploading={signUploading} />}
                 {/* <Signup/> */}
 								
 							</div>

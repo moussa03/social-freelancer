@@ -1,0 +1,35 @@
+.sign_in_sec h3 {
+    margin-bottom: 10px !important;
+}
+
+.top-title {
+    text-align: right;
+}
+
+.single-mail {
+    /* width: 60%; */
+    margin: 10px auto;
+    background: white;
+}
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    padding: 30px;
+    background: #dee2e6;
+}
+
+.content {
+    padding: 30px;
+}
+
+.content span {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.social-footer li {
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+}

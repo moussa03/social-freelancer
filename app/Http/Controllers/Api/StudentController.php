@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateUserRequest;
+
 use App\Models\Ville;
 use App\Models\User;
 use Auth;
@@ -10,37 +12,47 @@ use Hash;
 use Response;
 use Str;
 use Storage;
+use DB;
+use Intervention\Image\Facades\Image;
+
 use App\Http\Requests\RegisterRequest;
 
 class StudentController extends Controller
 {
     public function show_cities(){
+        
         $cities=Ville::all();
         return Response::json($cities);
-
     }
-    public function register(Request $request){
-        // $data = $request->validated();
-        
 
-        if ($request['profil_image']) {
 
+    
+    public function register(RegisterRequest $request){
+        if ($request->file('profil_picture')) {
+            $image = $request->file('profil_picture');
+            $imageName = time().'.'.$image->extension();
            
-           
-        }
-
+            $destinationPathThumbnail = public_path('/images/profil_pictures/small');
+            $img = Image::make($image->path());
+            $img->resize(50, 50, function ($constraint) {
+                $constraint->aspectRatio();
+            })->save($destinationPathThumbnail.'/'.$imageName);
+         
+            $destinationPath = public_path('/images/profil_pictures/origin');
+            $image->move($destinationPath, $imageName);
+            }
+        $credentials = $request->validated();
         /** @var \App\Models\User $student */
         $user = User::create([
-            'name' => $data['Name'],
-            'email' => $data['Email'],
-            'ville_id'=>$data['ville_id'],
-            'profil'=>$data['profil'],
-            'password' => bcrypt($data['password']),
+            'name' => $request['Name'],
+            'email' => $request['Email'],
+            'ville_id'=>$request['ville_id'],
+            'profil'=>$request['profil'],
+            'profil_picture' => $imageName,
+            'password' => bcrypt($request['password']),
         ]);
 
         $token = $user->createToken('main')->plainTextToken;
-        $user = Auth::user();
-       
         return response(compact('user', 'token'));
 
     }
@@ -49,6 +61,48 @@ class StudentController extends Controller
          return $request->user();
         //  $hashedPassword = Auth::user()->getAuthPassword();
         //  return response(compact('user','hashedPassword'));
+    }
+
+
+    public function update_profile(UpdateUserRequest $request, string $id){
+         $credentials = $request->validated();
+         $user=User::find($id);
+         if ($request->file('picture')) {
+            $image = $request->file('picture');
+            $imageName = time().'.'.$image->extension();
+           
+            $destinationPathThumbnail = public_path('/images/profil_pictures/small');
+            $img = Image::make($image->path());
+            $img->resize(50, 50, function ($constraint) {
+                $constraint->aspectRatio();
+            })->save($destinationPathThumbnail.'/'.$imageName);
+         
+            $destinationPath = public_path('/images/profil_pictures/origin');
+            $image->move($destinationPath, $imageName);
+            User::where('id',$user->id)
+            ->update([
+                 'name' => $request['Username'],
+                 'profil'=>$request['profil'],
+                 'email'=>$user->email,
+                 'ville_id'=>$request['ville'],
+                 'profil_picture'=>$imageName,
+                 
+            ]);
+        }
+      else {
+       
+        User::where('id',$user->id)
+            ->update([
+                 'name' => $request['Username'],
+                 'profil'=>$request['profil'],
+                 'email'=>$user->email,
+                 'ville_id'=>$request['ville'],
+                 
+            ]);
+      }
+    
+     
+        
     }
 
     public function update_password(Request $request){

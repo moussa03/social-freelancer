@@ -1,52 +1,58 @@
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import 'font-awesome/css/font-awesome.min.css';
-  const login=(e)=>{
-     e.preventDefault();
-     const payload={
-        email:Emailref.current.value,
-        password:PassRef.current.value
-     }
+// import {faCirclesOverlap} from "@fortawesome/free-solid-svg-icons";
+import {faLifeRing} from "@fortawesome/free-solid-svg-icons";
+// import { faDiagramVenn } from '@fortawesome/free-solid-svg-icons'
+import { useState } from 'react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-     AxiosClients.post('/login', payload)
-     .then(({data}) => {
-    //    setcurrentUser(data.user);
-        //   console.log(data.token);
-          Settoken(data.token);        
-     })
-     
-     .catch((err) => {
-        const response = err.response;
-       if (response && response.status === 422) {
-        console.log(response);
-        setMessage(response.data.message);
-       }
-       // console.log(Erors.Name);
-      
-     })
-	
 
-  }
-
-const Login=({email,pass,login})=>{
+const Login=({email,pass,login,loading,Erors,message})=>{
+   
     return (<>
     <div class="sign_in_sec current" id="tab-1">
-									
+									{message && console.log(message)}
 									<h3>Sign in</h3>
+									
 									<form>
 										<div class="row">
 											<div class="col-lg-12 no-pdd">
 												<div class="sn-field">
-													<input ref={email} type="text" name="username" placeholder="Email"/>
+												{/*  */}
+													<input className={` ${ Erors && Erors.email ? "input_eror" : "input_succes"}`} ref={email} type="text" name="username" placeholder="Email"/>
+													
 													<i class="fa fa-envelope"></i>
+													
+												</div>
+												{Erors && Erors.email  ? (
+													message=""
+													) : (
+														<p></p>
+												)}
+												<div className='error-message'>
+														{Erors && Erors.email}
 												</div>
 											</div>
 											<div class="col-lg-12 no-pdd">
 												<div class="sn-field">
-													<input ref={pass} type="password" name="password" placeholder="Password"/>
+													<input className={` ${ Erors && Erors.password ? "input_eror" : "input_succes"}`} ref={pass} type="password" name="password" placeholder="Password"/>
 													<i class="fa fa-unlock-alt"></i>
 													
 
+												</div>
+												<div className='error-message'>
+														{Erors && Erors.password}
+												</div>
+
+												<div className='error-message'>
+													   
+												{Erors && Erors.password  ? (
+													message=""
+													) : (
+														<p></p>
+												)}
+												</div>
+												<div className='error-message'>
+												{message && message}
 												</div>
 											</div>
 											<div class="col-lg-12 no-pdd">
@@ -57,12 +63,17 @@ const Login=({email,pass,login})=>{
 															<span></span>
 														</label>
 														<small>Remember me</small>
+														{ loading==true && (
+																<p> 
+														{/* <FontAwesomeIcon icon={faEllipsis} beatFade size='2xl' style={{ color:"#e44d3a" }}/> */}
+														<FontAwesomeIcon icon={faLifeRing} spin size='2xl' style={{color:"#e44d3a"}}/>																														</p>
+															)}
 													</div>
 													<a href="#" title="">Forgot Password?</a>
 												</div>
 											</div>
 											<div class="col-lg-12 no-pdd">
-												<button type="submit" value="submit" onClick={login}>Sign in</button>
+												<button type="submit" value="submit" onClick={login}>Sign in </button>
 											</div>
 										</div>
 									</form>

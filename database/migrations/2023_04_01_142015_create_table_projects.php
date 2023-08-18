@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreign('user_id')
               ->references('id')->on('users')->onDelete('cascade');
             $table->string('project_type');
-            $table->string('min_price');
-            $table->string('max_price');
+            $table->float('min_price');
+            $table->float('max_price');
             $table->string('category');
             $table->string('project_description');
             $table->timestamps();
